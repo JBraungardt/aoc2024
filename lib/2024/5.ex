@@ -45,6 +45,16 @@ aoc 2024, 5 do
       iex> p2(example_string())
   """
   def p2(input) do
+    {rules, updates} = parse_input(input)
+
+    Enum.filter(updates, &(!is_valid?(&1, rules)))
+    |> Enum.map(&fix_update(&1, rules))
+    |> Enum.map(&middle_element/1)
+    |> Enum.sum()
+  end
+
+  defp fix_update(update, rules) do
+    Enum.sort(update, fn a, b -> Enum.member?(rules, [a, b]) end)
   end
 
   defp parse_input(input) do
