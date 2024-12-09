@@ -18,6 +18,74 @@ defmodule Day6Grid do
     }
   end
 
+  def visit(%Day6Grid{pos: {x, y}, direction: {dx, dy}} = g) do
+    update_in(
+      g,
+      [
+        Access.key(:grid),
+        Access.find(fn {row, _} -> row == y end),
+        Access.elem(1),
+        Access.find(fn {col, _} -> col == x end),
+        Access.elem(1)
+      ],
+      fn
+        "." -> "$#{dx},#{dy}"
+        "^" -> "$#{dx},#{dy}"
+        cell -> cell
+      end
+    )
+  end
+
+  def visited?(%Day6Grid{grid: grid, pos: {x, y}, direction: {dx, dy}}) do
+    cell =
+      get_in(grid, [
+        Access.find(fn {row, _} -> row == y end),
+        Access.elem(1),
+        Access.find(fn {col, _} -> col == x end),
+        Access.elem(1)
+      ])
+
+    cell == "$#{dx},#{dy}"
+  end
+
+  def block(%Day6Grid{} = grid, {x, y}) do
+    update_in(
+      grid,
+      [
+        Access.key(:grid),
+        Access.find(fn {row, _} -> row == y end),
+        Access.elem(1),
+        Access.find(fn {col, _} -> col == x end),
+        Access.elem(1)
+      ],
+      fn
+        "." -> "#"
+        cell -> cell
+      end
+    )
+  end
+
+  def walk(%Day6Grid{pos: {x, y}, direction: {dx, dy} = dir} = g) do
+    cond do
+      is_blocked?(g) -> %Day6Grid{g | direction: next_direction(dir)}
+      true -> %Day6Grid{g | pos: {x + dx, y + dy}}
+    end
+  end
+
+  defp is_blocked?(%Day6Grid{grid: grid, pos: {x, y}, direction: {dx, dy}}) do
+    get_in(grid, [
+      Access.find(fn {row, _} -> row == y + dy end),
+      Access.elem(1),
+      Access.find(fn {col, _} -> col == x + dx end),
+      Access.elem(1)
+    ]) == "#"
+  end
+
+  defp next_direction({0, -1}), do: {1, 0}
+  defp next_direction({1, 0}), do: {0, 1}
+  defp next_direction({0, 1}), do: {-1, 0}
+  defp next_direction({-1, 0}), do: {0, -1}
+
   defp get_initial_pos(grid) do
     {y, row} =
       Enum.find(grid, fn {_row_num, row} ->
